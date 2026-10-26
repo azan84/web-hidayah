@@ -1,0 +1,31 @@
+name = "hidayah-site-chat"
+main = "src/index.js"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ALLOWED_ORIGINS = "https://hidayah.biomechemical.com"
+ALLOW_LOCALHOST = "false"
+
+# 8 questions per minute per visitor IP.
+[[ratelimits]]
+name = "CHAT_LIMITER"
+namespace_id = "4501"
+  [ratelimits.simple]
+  limit = 8
+  period = 60
+
+# Site-wide ceiling, whatever the IP (applied per Cloudflare location).
+[[ratelimits]]
+name = "GLOBAL_LIMITER"
+namespace_id = "4502"
+  [ratelimits.simple]
+  limit = 40
+  period = 60
+
+[observability]
+enabled = true
+
+# Run next to the Anthropic API: some Cloudflare edge egress IPs get 403 "Request not allowed".
+[placement]
+region = "aws:us-east-1"

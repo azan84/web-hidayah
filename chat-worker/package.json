@@ -1,0 +1,13 @@
+{
+  "name": "hidayah-site-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-knowledge.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  }
+}
