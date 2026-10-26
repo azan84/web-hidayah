@@ -1,0 +1,222 @@
+/* =========================================================================
+   motion.css — "Bloom" motion layer (pairs with motion.js)
+   The site's living lab: the cursor stirs up glowing plankton, cards
+   breathe like cell membranes, section rules divide like cells, content
+   settles like sediment, and a tubular photobioreactor bubbles in the
+   footer. Loaded after styles.css. Reduced motion → static, nothing hidden.
+   Individual transform properties (translate / scale / rotate) are used so
+   the existing `transform` hover lifts and parallax keep working.
+   ========================================================================= */
+
+:root {
+  --m-ease:   cubic-bezier(.22, 1, .36, 1);
+  --m-settle: cubic-bezier(.3, 1.35, .5, 1);      /* drops, overshoots a hair, rests */
+  --m-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --m-glow-1: var(--cyan-400, #22d3ee);
+  --m-glow-2: var(--algae-400, #71c860);
+  --m-glow-3: var(--teal-400, #4eb5a5);
+}
+
+/* ---------- Cross-page transitions: the next page settles into place ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .navbar { view-transition-name: m-nav; }
+  html:not(.vt-theme)::view-transition-old(root) { animation: m-page-out .3s ease both; }
+  html:not(.vt-theme)::view-transition-new(root) { animation: m-page-in .6s var(--m-settle) both; }
+}
+@keyframes m-page-out { to { opacity: 0; filter: blur(4px); } }
+@keyframes m-page-in  { from { opacity: 0; translate: 0 -18px; filter: blur(5px); } }
+
+/* Theme switch: the new palette blooms out of the toggle (circle driven by script.js) */
+html.vt-theme::view-transition-old(root),
+html.vt-theme::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.vt-theme::view-transition-new(root) { z-index: 2; }
+html.vt-theme .navbar { view-transition-name: none; }
+
+/* ---------- Bioluminescent plankton canvas (drawn by motion.js) ---------- */
+.m-plankton {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  z-index: 999; pointer-events: none;
+}
+[data-theme="dark"] .m-plankton { mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .m-plankton { mix-blend-mode: screen; }
+}
+
+/* ---------- Hero entrance (home) ---------- */
+.m-line { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .05em .16em; margin: 0 -.05em -.16em; }
+.m-line > span { display: inline-block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-content h1 .m-line > span { animation: m-line-up 1.1s var(--m-ease) both; }
+  .hero-content h1 .m-line:nth-of-type(2) > span { animation-delay: .13s; }
+  .hero-content .title-line   { animation: m-rise .9s var(--m-ease) .35s both; }
+  .hero-content .affiliation  { animation: m-rise .9s var(--m-ease) .45s both; }
+  .hero-keywords .keyword-tag { animation: m-bud .8s var(--m-spring) backwards; }
+  .hero-keywords .keyword-tag:nth-child(1) { animation-delay: .55s; }
+  .hero-keywords .keyword-tag:nth-child(2) { animation-delay: .63s; }
+  .hero-keywords .keyword-tag:nth-child(3) { animation-delay: .71s; }
+  .hero-keywords .keyword-tag:nth-child(4) { animation-delay: .79s; }
+  .hero-keywords .keyword-tag:nth-child(5) { animation-delay: .87s; }
+  .hero-tagline { animation: m-rise-blur 1s var(--m-ease) .9s both; }
+  .hero .stat-cards .stat-card { animation: m-bud .9s var(--m-spring) backwards; }
+  .hero .stat-cards .stat-card:nth-child(1) { animation-delay: 1.0s; }
+  .hero .stat-cards .stat-card:nth-child(2) { animation-delay: 1.07s; }
+  .hero .stat-cards .stat-card:nth-child(3) { animation-delay: 1.14s; }
+  .hero .stat-cards .stat-card:nth-child(4) { animation-delay: 1.21s; }
+  .hero .stat-cards .stat-card:nth-child(5) { animation-delay: 1.28s; }
+  .hero-photo-blob { animation: m-swell 1.4s var(--m-ease) .15s both; }
+
+  /* The portrait's blob outline breathes like a living membrane (Chrome, Edge, Firefox) */
+  #blobClip path { animation: m-membrane 16s ease-in-out infinite; }
+
+  /* Inner-page banners and blog post titles */
+  .page-banner h1 .m-line > span,
+  .blog-post-header h1 .m-line > span { animation: m-line-up 1s var(--m-ease) .05s both; }
+  .page-banner .banner-desc { animation: m-rise-blur .9s var(--m-ease) .25s both; }
+
+  .keyword-tag { transition: scale .45s var(--m-spring); }
+  .keyword-tag:hover { scale: 1.07; }
+}
+
+@keyframes m-line-up   { from { translate: 0 110%; rotate: 0 0 1 3deg; } }
+@keyframes m-rise      { from { opacity: 0; translate: 0 14px; } }
+@keyframes m-rise-blur { from { opacity: 0; translate: 0 12px; filter: blur(6px); } }
+@keyframes m-bud {                     /* a cell buds off: pinches in, swells, rests */
+  0%   { opacity: 0; scale: .2 .2; }
+  55%  { opacity: 1; scale: 1.08 .94; }
+  80%  { scale: .97 1.03; }
+  100% { scale: 1 1; }
+}
+@keyframes m-swell { from { opacity: 0; scale: .7; filter: blur(12px) saturate(.3); } }
+@keyframes m-membrane {
+  0%, 100% { d: path("M0.53,0.03 C0.73,0.03 0.92,0.15 0.97,0.35 C1.02,0.55 0.92,0.78 0.74,0.91 C0.56,1.04 0.32,1.00 0.17,0.86 C0.02,0.72 -0.02,0.48 0.06,0.29 C0.14,0.10 0.33,0.03 0.53,0.03 Z"); }
+  33%      { d: path("M0.50,0.02 C0.72,0.01 0.95,0.18 0.98,0.40 C1.01,0.62 0.88,0.82 0.70,0.93 C0.52,1.03 0.28,0.98 0.14,0.83 C0.00,0.68 0.00,0.44 0.09,0.26 C0.18,0.08 0.30,0.03 0.50,0.02 Z"); }
+  66%      { d: path("M0.55,0.04 C0.76,0.06 0.90,0.20 0.96,0.38 C1.02,0.58 0.95,0.76 0.78,0.89 C0.60,1.02 0.36,1.02 0.20,0.90 C0.04,0.78 -0.01,0.54 0.04,0.33 C0.09,0.12 0.34,0.02 0.55,0.04 Z"); }
+}
+
+/* Hero silhouettes shy away from the cursor (phototaxis, in reverse) */
+.hero-bg .alga { translate: var(--m-px, 0) var(--m-py, 0); transition: translate 1.1s var(--m-ease); }
+
+/* ---------- Section rules divide like cells ---------- */
+:is(.section-header, .page-banner, .blog-post-header) .underline-accent { position: relative; background-repeat: no-repeat; background-position: center; }
+.underline-accent::before,
+.underline-accent::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0 15%, var(--m-glow-2) 45%, var(--m-glow-1) 100%);
+  box-shadow: 0 0 10px var(--m-glow-1);
+  opacity: 0; pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .section-header.visible .underline-accent,
+  .page-banner .underline-accent,
+  .blog-post-header .underline-accent { animation: m-rule-grow 1.1s var(--m-ease) .55s backwards; }
+  .section-header.visible .underline-accent::before,
+  .page-banner .underline-accent::before,
+  .blog-post-header .underline-accent::before { animation: m-daughter-l 1.3s var(--m-ease) .15s; }
+  .section-header.visible .underline-accent::after,
+  .page-banner .underline-accent::after,
+  .blog-post-header .underline-accent::after { animation: m-daughter-r 1.3s var(--m-ease) .15s; }
+}
+@keyframes m-rule-grow { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
+@keyframes m-daughter-l {
+  0%   { opacity: 0; scale: .3; }
+  25%  { opacity: 1; scale: 1.2 1; translate: 0 0; }
+  45%  { opacity: 1; scale: 1.3 .8; translate: -3px 0; }   /* pinching */
+  100% { opacity: 0; scale: .7; translate: -34px 0; }
+}
+@keyframes m-daughter-r {
+  0%   { opacity: 0; scale: .3; }
+  25%  { opacity: 1; scale: 1.2 1; translate: 0 0; }
+  45%  { opacity: 1; scale: 1.3 .8; translate: 3px 0; }
+  100% { opacity: 0; scale: .7; translate: 34px 0; }
+}
+
+/* ---------- Sedimentation: grid items drift down and settle ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid).reveal.visible > * {
+    animation: m-settle .95s var(--m-settle) backwards;
+    animation-delay: calc(var(--m-n, 0) * 70ms + 120ms);
+  }
+  .m-wait:not(:focus-within) { opacity: 0; }
+  .m-settle { animation: m-settle .95s var(--m-settle) backwards; animation-delay: var(--m-d, 0ms); }
+}
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(2)  { --m-n: 1; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(3)  { --m-n: 2; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(4)  { --m-n: 3; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(5)  { --m-n: 4; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(6)  { --m-n: 5; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(7)  { --m-n: 6; }
+:is(.grants-grid, .courses-grid, .gallery-grid, .pub-list, .contact-grid) > :nth-child(n+8) { --m-n: 7; }
+@keyframes m-settle {
+  0%   { opacity: 0; translate: 0 -26px; filter: blur(3px); }
+  60%  { opacity: 1; filter: none; }
+  100% { translate: 0 0; }
+}
+
+/* ---------- Cards: bioluminescent spotlight + breathing membrane ---------- */
+.m-cell { position: relative; isolation: isolate; }
+.m-cell::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background:
+    radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--m-glow-1) 16%, transparent), transparent 62%),
+    radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--m-glow-2) 10%, transparent), transparent 70%);
+  opacity: 0; transition: opacity .4s ease;
+}
+.m-cell:hover::before { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .m-cell.m-breathe:hover { animation: m-breathe 3.2s ease-in-out infinite; }
+}
+@keyframes m-breathe {
+  0%, 100% { border-radius: 24px; }
+  33%      { border-radius: 30px 20px 27px 22px / 22px 28px 20px 30px; }
+  66%      { border-radius: 21px 29px 22px 28px / 28px 21px 29px 22px; }
+}
+
+/* ---------- Footer: a tubular photobioreactor ---------- */
+.m-pbr {
+  position: relative; display: block;
+  width: min(640px, 82%); height: 12px; margin: 0 auto 1.1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--m-glow-3) 45%, transparent);
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--m-glow-2) 28%, transparent),
+    color-mix(in srgb, var(--m-glow-3) 34%, transparent),
+    color-mix(in srgb, var(--m-glow-1) 26%, transparent),
+    color-mix(in srgb, var(--m-glow-2) 28%, transparent));
+  background-size: 200% 100%;
+  box-shadow: inset 0 1px 2px color-mix(in srgb, #fff 55%, transparent), 0 0 18px color-mix(in srgb, var(--m-glow-2) 22%, transparent);
+  overflow: hidden;
+  container-type: inline-size;
+}
+.m-pbr i {
+  position: absolute; left: 0; top: 50%; width: var(--s, 5px); height: var(--s, 5px); margin-top: calc(var(--s, 5px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, color-mix(in srgb, var(--m-glow-1) 70%, transparent) 70%);
+  opacity: .85;
+  translate: -10px 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .m-pbr   { animation: m-culture 9s linear infinite; }
+  .m-pbr i { animation: m-bubble var(--t, 6s) linear infinite; animation-delay: var(--d, 0s); }
+  .m-pbr.m-off, .m-pbr.m-off i { animation-play-state: paused; }
+}
+@keyframes m-culture { to { background-position: -200% 0; } }
+@keyframes m-bubble {
+  0%   { translate: -10px 1px; }
+  25%  { translate: 25cqw -2px; }
+  50%  { translate: 50cqw 2px; }
+  75%  { translate: 75cqw -1px; }
+  100% { translate: calc(100cqw + 10px) 1px; }
+}
+
+/* ---------- Safety nets ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .m-wait { opacity: 1 !important; }
+  .m-plankton { display: none; }
+}
+@media print {
+  .m-wait { opacity: 1 !important; }
+  .m-plankton, .m-pbr { display: none; }
+}

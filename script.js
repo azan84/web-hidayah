@@ -27,14 +27,30 @@
   const saved = (() => { try { return localStorage.getItem(THEME_KEY); } catch (_) { return null; } })();
   if (saved === 'dark' || saved === 'light') applyTheme(saved);
 
-  function toggleTheme() {
+  let themeBusy = false;
+  function toggleTheme(e) {
+    if (themeBusy) return;
     const next = currentResolvedTheme() === 'dark' ? 'light' : 'dark';
     const doSwap = () => {
       applyTheme(next);
       try { localStorage.setItem(THEME_KEY, next); } catch (_) { /* ignore */ }
     };
     if (supportsVT && !prefersReducedMotion) {
-      document.startViewTransition(doSwap);
+      // The new palette blooms outward from the toggle, like a culture spreading
+      const btn = e && e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget : null;
+      const b = btn ? btn.getBoundingClientRect() : { left: innerWidth / 2, top: 0, width: 0, height: 0 };
+      const x = b.left + b.width / 2, y = b.top + b.height / 2;
+      const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      root.classList.add('vt-theme');
+      themeBusy = true;
+      const vt = document.startViewTransition(doSwap);
+      vt.ready.then(() => {
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+          { duration: 750, easing: 'cubic-bezier(.65,0,.35,1)', pseudoElement: '::view-transition-new(root)' }
+        );
+      }).catch(() => {});
+      vt.finished.finally(() => { themeBusy = false; root.classList.remove('vt-theme'); });
     } else {
       doSwap();
     }
